@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<robot name="one_joint_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Fixed base -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.15"/>
+      <geometry>
+        <cylinder radius="0.15" length="0.30"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.1 0.3 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.15"/>
+      <geometry>
+        <cylinder radius="0.15" length="0.30"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.15"/>
+      <mass value="2.0"/>
+      <inertia ixx="0.015" ixy="0" ixz="0"
+               iyy="0.015" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+
+  <!-- Rotating arm -->
+  <link name="arm_link">
+    <visual>
+      <origin xyz="0.30 0 0"/>
+      <geometry>
+        <box size="0.60 0.08 0.08"/>
+      </geometry>
+      <material name="orange">
+        <color rgba="1 0.4 0.05 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.30 0 0"/>
+      <geometry>
+        <box size="0.60 0.08 0.08"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.30 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.002" ixy="0" ixz="0"
+               iyy="0.031" iyz="0" izz="0.031"/>
+    </inertial>
+  </link>
+
+  <!-- One revolute joint: rotates around the vertical Z axis -->
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_link"/>
+    <origin xyz="0 0 0.30" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="20" velocity="1.0"/>
+    <dynamics damping="0.2" friction="0.1"/>
+  </joint>
+
+  <!-- Expose joint1 to ros2_control -->
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <joint name="joint1">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Connect Gazebo to ros2_control -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find one_joint_robot_description)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>
